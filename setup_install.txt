@@ -1,0 +1,11 @@
+npm install      # install dependencies                                                                                                                                                              
+npm run dev      # run in dev mode with hot reload
+                                                                                                                                                                                                     
+To package a distributable:                                                                                                                                                                          
+                                                                                                                                                                                                     
+npm run build           # compile only                                                                                                                                                               
+npm run pack:mac        # build + package macOS .dmg/.zip                                                                                                                                            
+npm run pack:win        # build + package Windows installer                                                                                                                                          
+npm run pack:linux      # build + package Linux AppImage                                                                                                                                             
+                                                                                                                                                                                                     
+npm run dev is what you want for day-to-day development — it launches the Electron app with Vite HMR.   
