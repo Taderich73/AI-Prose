@@ -129,12 +129,11 @@ export default function App() {
         return
       }
       if (!meta) return
-      if (e.key === 'f' && !e.altKey && !e.shiftKey) {
+      // Match on e.code so Option-produced characters (e.g. macOS Cmd+Opt+F
+      // arriving as 'ƒ') still trigger the shortcut.
+      if (e.code === 'KeyF' && !e.shiftKey) {
         e.preventDefault()
-        useSearchStore.getState().open('find')
-      } else if (e.key === 'f' && e.altKey) {
-        e.preventDefault()
-        useSearchStore.getState().open('replace')
+        useSearchStore.getState().open(e.altKey ? 'replace' : 'find')
       }
     }
     window.addEventListener('keydown', handler)
