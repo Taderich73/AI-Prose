@@ -4,6 +4,7 @@ import { getCodeMirrorExtensions, createEditorState } from '../codemirror/setup'
 import { useEditorStore } from '../stores/editor-store'
 import {
   registerSearchController,
+  getSearchController,
 } from '../search/search-controller'
 import { createCodeMirrorSearchController } from '../search/codemirror-search-binding'
 import { useSearchStore } from '../search/search-store'
@@ -24,9 +25,8 @@ export function SourcePane({ onViewReady }: SourcePaneProps) {
       setMarkdownContent(content)
       setDirty(true)
       // Recompute matches after content edits if search is open.
-      if (useSearchStore.getState().isOpen && viewRef.current) {
-        const ctrl = createCodeMirrorSearchController(viewRef.current)
-        ctrl.refresh()
+      if (useSearchStore.getState().isOpen) {
+        getSearchController('source')?.refresh()
       }
     },
     [setMarkdownContent, setDirty]
