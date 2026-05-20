@@ -4,6 +4,7 @@ import { markdown } from '@codemirror/lang-markdown'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { codeMirrorSearchExtension } from '../search/codemirror-search-binding'
 
 const baseTheme = EditorView.theme({
   '&': {
@@ -48,6 +49,7 @@ export function getCodeMirrorExtensions(
     history(),
     markdown(),
     syntaxHighlighting(defaultHighlightStyle),
+    codeMirrorSearchExtension(),
     keymap.of([...defaultKeymap, ...historyKeymap]),
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
