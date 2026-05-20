@@ -136,8 +136,9 @@ export default function App() {
         useSearchStore.getState().open(e.altKey ? 'replace' : 'find')
       }
     }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
+    // Capture phase so Tiptap/CodeMirror can't swallow the event before us.
+    window.addEventListener('keydown', handler, true)
+    return () => window.removeEventListener('keydown', handler, true)
   }, [])
 
   // Window title
