@@ -2,6 +2,12 @@ import { useRef, useEffect, useCallback } from 'react'
 import { EditorView } from '@codemirror/view'
 import { getCodeMirrorExtensions, createEditorState } from '../codemirror/setup'
 import { useEditorStore } from '../stores/editor-store'
+import {
+  registerSearchController,
+} from '../search/search-controller'
+import { createCodeMirrorSearchController } from '../search/codemirror-search-binding'
+import { useSearchStore } from '../search/search-store'
+import { FindBar } from '../search/FindBar'
 
 interface SourcePaneProps {
   onViewReady: (view: EditorView | null) => void
@@ -17,6 +23,11 @@ export function SourcePane({ onViewReady }: SourcePaneProps) {
     (content: string) => {
       setMarkdownContent(content)
       setDirty(true)
+      // Recompute matches after content edits if search is open.
+      if (useSearchStore.getState().isOpen && viewRef.current) {
+        const ctrl = createCodeMirrorSearchController(viewRef.current)
+        ctrl.refresh()
+      }
     },
     [setMarkdownContent, setDirty]
   )
@@ -45,7 +56,11 @@ export function SourcePane({ onViewReady }: SourcePaneProps) {
     viewRef.current = view
     onViewReady(view)
 
+    const controller = createCodeMirrorSearchController(view)
+    registerSearchController('source', controller)
+
     return () => {
+      registerSearchController('source', null)
       view.destroy()
       viewRef.current = null
       onViewReady(null)
@@ -54,5 +69,10 @@ export function SourcePane({ onViewReady }: SourcePaneProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedTheme])
 
-  return <div ref={containerRef} className="source-pane" />
+  return (
+    <div className="pane-container">
+      <FindBar pane="source" />
+      <div ref={containerRef} className="source-pane" />
+    </div>
+  )
 }
