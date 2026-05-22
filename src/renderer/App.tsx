@@ -13,6 +13,7 @@ import { useFileOps } from './hooks/useFileOps'
 import { useMarkdownSync } from './hooks/useMarkdownSync'
 import { setMarkdownContent as loadMarkdown } from './editor/markdown-helpers'
 import { useEditorStore } from './stores/editor-store'
+import { useSearchStore } from './search/search-store'
 import './app.css'
 
 export default function App() {
@@ -118,6 +119,27 @@ export default function App() {
     mediaQuery.addEventListener('change', resolve)
     return () => mediaQuery.removeEventListener('change', resolve)
   }, [theme, setResolvedTheme])
+
+  // Global shortcuts for find / find-and-replace.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey
+      if (e.key === 'Escape' && useSearchStore.getState().isOpen) {
+        useSearchStore.getState().close()
+        return
+      }
+      if (!meta) return
+      // Match on e.code so Option-produced characters (e.g. macOS Cmd+Opt+F
+      // arriving as 'ƒ') still trigger the shortcut.
+      if (e.code === 'KeyF' && !e.shiftKey) {
+        e.preventDefault()
+        useSearchStore.getState().open(e.altKey ? 'replace' : 'find')
+      }
+    }
+    // Capture phase so Tiptap/CodeMirror can't swallow the event before us.
+    window.addEventListener('keydown', handler, true)
+    return () => window.removeEventListener('keydown', handler, true)
+  }, [])
 
   // Window title
   const fileName = filePath ? filePath.split('/').pop() : 'Untitled'

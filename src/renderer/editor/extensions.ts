@@ -9,6 +9,7 @@ import { Image } from '@tiptap/extension-image'
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
 import { common, createLowlight } from 'lowlight'
 import { RichClipboard } from './clipboard'
+import { SearchExtension } from '../search/tiptap-search-extension'
 
 const lowlight = createLowlight(common)
 
@@ -52,5 +53,6 @@ export function getExtensions() {
       placeholder: 'Start writing...',
     }),
     RichClipboard,
+    SearchExtension,
   ]
 }
