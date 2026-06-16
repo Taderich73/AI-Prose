@@ -6,12 +6,9 @@ import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 import { Link } from '@tiptap/extension-link'
 import { Image } from '@tiptap/extension-image'
-import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
-import { common, createLowlight } from 'lowlight'
+import { MermaidCodeBlock } from './mermaid-extension'
 import { RichClipboard } from './clipboard'
 import { SearchExtension } from '../search/tiptap-search-extension'
-
-const lowlight = createLowlight(common)
 
 export function getExtensions() {
   return [
@@ -25,9 +22,7 @@ export function getExtensions() {
       transformPastedText: true,
       transformCopiedText: false,
     }),
-    CodeBlockLowlight.configure({
-      lowlight,
-    }),
+    MermaidCodeBlock,
     Table.configure({
       resizable: true,
     }),
