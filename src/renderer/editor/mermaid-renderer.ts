@@ -95,7 +95,8 @@ function formatError(err: unknown): string {
   } else {
     message = String(err)
   }
-  return `Mermaid: ${message.slice(0, 200)}`
+  const result = `Mermaid: ${message}`
+  return result.length > 200 ? result.slice(0, 200) : result
 }
 
 function logFailure(errorMessage: string, code: string): void {

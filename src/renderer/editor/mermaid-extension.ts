@@ -4,8 +4,6 @@ import type { Node as PMNode } from '@tiptap/pm/model'
 import { useEditorStore } from '../stores/editor-store'
 import {
   renderMermaid,
-  bumpGeneration,
-  getGeneration,
 } from './mermaid-renderer'
 
 const RENDER_DEBOUNCE_MS = 250
@@ -73,7 +71,6 @@ class MermaidNodeView {
     this.unsubscribeTheme = useEditorStore.subscribe((state) => {
       if (state.resolvedTheme === previousTheme) return
       previousTheme = state.resolvedTheme
-      bumpGeneration()
       this.scheduleRender(0)
     })
 
@@ -130,12 +127,11 @@ class MermaidNodeView {
 
   private async doRender(): Promise<void> {
     if (this.destroyed) return
-    const myGeneration = getGeneration()
     const theme = useEditorStore.getState().resolvedTheme
     const code = this.node.textContent
     const result = await renderMermaid(code, theme)
     if (this.destroyed) return
-    if (myGeneration !== getGeneration()) return
+    if (theme !== useEditorStore.getState().resolvedTheme) return
     this.applyResult(result)
   }
 
