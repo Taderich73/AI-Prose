@@ -107,10 +107,12 @@ class MermaidNodeView {
     return false
   }
 
-  // The contentDOM hosts the mermaid source text. We hide it visually but PM
-  // still uses it to track the node's text content for the markdown roundtrip.
-  ignoreMutation(): boolean {
-    return false
+  // ProseMirror should ignore mutations OUTSIDE contentDOM. Our SVG/error
+  // divs are not part of contentDOM, so PM must not try to reconcile when
+  // we swap innerHTML on them — otherwise it'll reparse the node on every
+  // render and either flicker or loop.
+  ignoreMutation(mutation: MutationRecord | { target: Node; type: string }): boolean {
+    return !this.contentDOM.contains(mutation.target)
   }
 
   private scheduleRender(delayMs: number): void {
