@@ -45,7 +45,7 @@ function cacheSet(key: string, value: string): void {
 }
 
 export function getCachedSvg(code: string, theme: Theme): string | undefined {
-  return cache.get(cacheKey(code, theme))
+  return cacheGet(cacheKey(code, theme))
 }
 
 export function bumpGeneration(): number {
