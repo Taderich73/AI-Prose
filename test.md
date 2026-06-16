@@ -49,6 +49,15 @@ for i in range(10):
 > This is a blockquote.
 > It can span multiple lines.
 
+## Mermaid Diagram
+
+A small inline diagram to confirm mermaid renders alongside other markdown content:
+
+```mermaid
+flowchart LR
+  Idea --> Plan --> Build --> Ship
+```
+
 ---
 
 That's the end of the test document.
