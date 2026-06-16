@@ -797,3 +797,59 @@ body {
   background: rgba(255, 167, 38, 0.55);
   outline-color: rgba(255, 167, 38, 0.8);
 }
+
+/* Mermaid diagrams */
+.editor-pane .tiptap pre.mermaid-block {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 0.5em 0;
+  display: block;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.editor-pane .tiptap pre.mermaid-block .mermaid-svg {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.editor-pane .tiptap pre.mermaid-block .mermaid-svg svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.editor-pane .tiptap pre.mermaid-block .mermaid-source {
+  display: block;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+  white-space: pre;
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.editor-pane .tiptap pre.mermaid-block .mermaid-error {
+  display: block;
+  text-align: left;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+[data-theme="dark"] .editor-pane .tiptap pre.mermaid-block .mermaid-error {
+  background: #3b1616;
+  color: #f87171;
+  border-color: #7f1d1d;
+}
