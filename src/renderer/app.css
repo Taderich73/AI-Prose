@@ -805,19 +805,16 @@ body {
   border-radius: 6px;
   padding: 16px;
   margin: 0.5em 0;
-  display: block;
+  display: flex;
+  flex-direction: column;
   overflow-x: auto;
-  text-align: center;
 }
 
+/* `safe center` keeps small diagrams centered; wide diagrams fall back to
+   start-alignment so the horizontal scrollbar can reach the leftmost content
+   instead of clipping it under the centered overflow. */
 .editor-pane .tiptap pre.mermaid-block .mermaid-svg {
-  display: inline-block;
-  max-width: 100%;
-}
-
-.editor-pane .tiptap pre.mermaid-block .mermaid-svg svg {
-  max-width: 100%;
-  height: auto;
+  align-self: safe center;
 }
 
 .editor-pane .tiptap pre.mermaid-block .mermaid-source {
