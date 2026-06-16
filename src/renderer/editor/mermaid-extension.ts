@@ -30,7 +30,6 @@ function buildPassthroughCodeBlock(node: PMNode): PassthroughView {
 
 class MermaidNodeView {
   dom: HTMLPreElement
-  contentDOM: HTMLElement
 
   private node: PMNode
   private destroyed = false
@@ -39,13 +38,19 @@ class MermaidNodeView {
 
   private svgEl: HTMLDivElement
   private errorEl: HTMLDivElement
-  private codeEl: HTMLElement
+  private sourceEl: HTMLElement
 
   constructor(props: NodeViewConstructorProps) {
     this.node = props.node
 
     const pre = document.createElement('pre')
     pre.classList.add('mermaid-block')
+    // Atomic NodeView: editing happens in the source pane, not here. Marking
+    // the whole subtree non-editable prevents the browser from trying to put
+    // a cursor inside the rendered SVG (mermaid uses <foreignObject> with
+    // HTML labels by default, which would otherwise inherit contentEditable
+    // from the editor and create a focus trap).
+    pre.contentEditable = 'false'
 
     const error = document.createElement('div')
     error.classList.add('mermaid-error')
@@ -54,18 +59,18 @@ class MermaidNodeView {
     const svg = document.createElement('div')
     svg.classList.add('mermaid-svg')
 
-    const code = document.createElement('code')
-    code.classList.add('mermaid-source', 'language-mermaid')
+    const source = document.createElement('code')
+    source.classList.add('mermaid-source', 'language-mermaid')
+    source.style.display = 'none'
 
     pre.appendChild(error)
     pre.appendChild(svg)
-    pre.appendChild(code)
+    pre.appendChild(source)
 
     this.dom = pre
-    this.contentDOM = code
     this.svgEl = svg
     this.errorEl = error
-    this.codeEl = code
+    this.sourceEl = source
 
     let previousTheme = useEditorStore.getState().resolvedTheme
     this.unsubscribeTheme = useEditorStore.subscribe((state) => {
@@ -97,19 +102,18 @@ class MermaidNodeView {
     this.unsubscribeTheme()
   }
 
-  // ProseMirror should not redirect text input events through the rendered SVG
-  // since editing happens in the source pane. Telling PM that this NodeView
-  // doesn't handle events keeps clicks from misbehaving.
+  // No contentDOM — this is an atomic NodeView in WYSIWYG. PM tracks the
+  // source text in its data model (the node's children), so the markdown
+  // roundtrip is unaffected. All clicks/keys on the rendered diagram are
+  // ours to ignore; let PM handle selection at the node boundary.
   stopEvent(): boolean {
     return false
   }
 
-  // ProseMirror should ignore mutations OUTSIDE contentDOM. Our SVG/error
-  // divs are not part of contentDOM, so PM must not try to reconcile when
-  // we swap innerHTML on them — otherwise it'll reparse the node on every
-  // render and either flicker or loop.
-  ignoreMutation(mutation: MutationRecord | { target: Node; type: string }): boolean {
-    return !this.contentDOM.contains(mutation.target)
+  // PM should ignore all mutations under this NodeView — none of them affect
+  // the source text (which lives in the PM data model, not in our DOM).
+  ignoreMutation(): boolean {
+    return true
   }
 
   private scheduleRender(delayMs: number): void {
@@ -132,23 +136,27 @@ class MermaidNodeView {
     const result = await renderMermaid(code, theme)
     if (this.destroyed) return
     if (theme !== useEditorStore.getState().resolvedTheme) return
-    this.applyResult(result)
+    this.applyResult(result, code)
   }
 
-  private applyResult(result: { svg: string } | { error: string }): void {
+  private applyResult(
+    result: { svg: string } | { error: string },
+    sourceCode: string
+  ): void {
     if ('svg' in result) {
       this.errorEl.style.display = 'none'
       this.errorEl.textContent = ''
       this.svgEl.innerHTML = result.svg
-      this.codeEl.style.display = 'none'
+      this.sourceEl.style.display = 'none'
+      this.sourceEl.textContent = ''
     } else {
       this.errorEl.textContent = result.error
       this.errorEl.style.display = ''
       this.svgEl.innerHTML = ''
-      // Reveal the source so the user can see what they typed. ProseMirror
-      // owns the content of codeEl (it's our contentDOM), so we don't write
-      // text into it — we just unhide it.
-      this.codeEl.style.display = ''
+      // Show the user what they typed alongside the error. Read from the PM
+      // node's text content directly (we have no contentDOM).
+      this.sourceEl.textContent = sourceCode
+      this.sourceEl.style.display = ''
     }
   }
 }
