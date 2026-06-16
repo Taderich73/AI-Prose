@@ -2,6 +2,8 @@ import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { DOMSerializer, Fragment, Node as ProseMirrorNode } from '@tiptap/pm/model'
 import type { Slice } from '@tiptap/pm/model'
+import { getCachedSvg } from './mermaid-renderer'
+import { useEditorStore } from '../stores/editor-store'
 
 /**
  * RichClipboard — TipTap extension for rich-text clipboard copy.
@@ -152,6 +154,23 @@ function applyInlineStyles(element: Element): void {
       applyInlineStyles(child)
     }
     return
+  }
+
+  // Mermaid block — substitute the cached SVG into the HTML clipboard slot.
+  if (element.tagName === 'PRE') {
+    const codeChild = element.querySelector(':scope > code')
+    if (codeChild && codeChild.classList.contains('language-mermaid')) {
+      const theme = useEditorStore.getState().resolvedTheme
+      const svg = getCachedSvg(codeChild.textContent ?? '', theme)
+      if (svg) {
+        element.innerHTML = svg
+        element.style.setProperty('background-color', 'transparent')
+        element.style.setProperty('padding', '0')
+        element.style.setProperty('text-align', 'center')
+        return
+      }
+      // No cached SVG (error state or eviction) — fall through to default styling.
+    }
   }
 
   // Apply tag-level styles
