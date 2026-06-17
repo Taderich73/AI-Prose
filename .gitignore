@@ -38,4 +38,4 @@ coverage/
 Thumbs.db
 
 # Plans and Specs
-docs/superpowers
+docs/superpowers/*
