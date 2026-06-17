@@ -1,4 +1,4 @@
-import { Menu, BrowserWindow, app } from 'electron'
+import { Menu, BrowserWindow, BaseWindow, app } from 'electron'
 
 export function buildMenu(): void {
   const isMac = process.platform === 'darwin'
@@ -107,10 +107,10 @@ export function buildMenu(): void {
 }
 
 function sendToRenderer(
-  window: BrowserWindow | undefined,
+  window: BaseWindow | undefined,
   channel: string
 ): void {
-  if (window) {
+  if (window instanceof BrowserWindow) {
     window.webContents.send(channel)
   }
 }
