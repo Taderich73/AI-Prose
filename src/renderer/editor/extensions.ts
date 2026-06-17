@@ -18,10 +18,7 @@ export function getExtensions() {
       },
       codeBlock: false,
     }),
-    Markdown.configure({
-      transformPastedText: true,
-      transformCopiedText: false,
-    }),
+    Markdown,
     MermaidCodeBlock,
     Table.configure({
       resizable: true,
