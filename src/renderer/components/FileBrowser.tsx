@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useEditorStore } from '../stores/editor-store'
 import { useFileBrowser } from '../hooks/useFileBrowser'
 
@@ -66,23 +66,37 @@ interface FileBrowserProps {
 }
 
 export function FileBrowser({ onOpenFile }: FileBrowserProps) {
-  const { rootDirectory, setRootDirectory } = useEditorStore()
-  const { toggleFolder, isExpanded, isLoading, getContents, loadDirectory, reset } =
-    useFileBrowser()
+  const { rootDirectory, setRootDirectory, fileBrowserRefreshNonce } =
+    useEditorStore()
+  const {
+    toggleFolder, isExpanded, isLoading, getContents, loadDirectory, reset, refresh,
+  } = useFileBrowser()
 
   const handleChooseFolder = useCallback(async () => {
     const dir = await window.api.chooseDirectory()
     if (dir) {
-      reset()
       setRootDirectory(dir)
     }
-  }, [reset, setRootDirectory])
+  }, [setRootDirectory])
 
+  // Load the root folder, clearing any previous folder's tree state, whenever
+  // the root changes (from the in-pane button or the toolbar open-folder icon).
   useEffect(() => {
     if (rootDirectory) {
+      reset()
       loadDirectory(rootDirectory)
     }
-  }, [rootDirectory, loadDirectory])
+  }, [rootDirectory, reset, loadDirectory])
+
+  // Reload visible folders when a refresh is requested from the toolbar. Acts
+  // only on an actual nonce change so switching folders doesn't double-load.
+  const prevRefreshNonce = useRef(fileBrowserRefreshNonce)
+  useEffect(() => {
+    if (fileBrowserRefreshNonce !== prevRefreshNonce.current) {
+      prevRefreshNonce.current = fileBrowserRefreshNonce
+      if (rootDirectory) refresh(rootDirectory)
+    }
+  }, [fileBrowserRefreshNonce, rootDirectory, refresh])
 
   if (!rootDirectory) {
     return (

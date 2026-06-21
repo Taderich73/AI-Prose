@@ -12,6 +12,7 @@ interface EditorState {
   activePane: ActivePane
   rootDirectory: string | null
   showFileBrowser: boolean
+  fileBrowserRefreshNonce: number
   theme: ThemePreference
   resolvedTheme: ResolvedTheme
 
@@ -28,6 +29,7 @@ interface EditorState {
   setRootDirectory: (path: string | null) => void
   setShowFileBrowser: (show: boolean) => void
   toggleFileBrowser: () => void
+  refreshFileBrowser: () => void
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -38,6 +40,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   activePane: 'wysiwyg',
   rootDirectory: null,
   showFileBrowser: true,
+  fileBrowserRefreshNonce: 0,
   theme: (localStorage.getItem('theme') as ThemePreference) || 'system',
   resolvedTheme: 'light',
 
@@ -66,4 +69,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   setShowFileBrowser: (show) => set({ showFileBrowser: show }),
   toggleFileBrowser: () =>
     set((state) => ({ showFileBrowser: !state.showFileBrowser })),
+  refreshFileBrowser: () =>
+    set((state) => ({
+      fileBrowserRefreshNonce: state.fileBrowserRefreshNonce + 1,
+    })),
 }))

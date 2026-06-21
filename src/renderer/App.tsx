@@ -33,8 +33,22 @@ export default function App() {
     setCmView(view)
   }, [])
 
-  const { handleNew, handleOpen, handleSave } = useFileOps(editor)
+  const { handleNew, handleSave } = useFileOps(editor)
   useMarkdownSync(editor, cmView)
+
+  // Open a folder into the file browser (same flow as the in-pane "Choose
+  // Folder" button). Single-file open remains on File ▸ Open (Cmd+O).
+  const handleOpenFolder = useCallback(async () => {
+    const dir = await window.api.chooseDirectory()
+    if (!dir) return
+    const store = useEditorStore.getState()
+    store.setShowFileBrowser(true)
+    store.setRootDirectory(dir)
+  }, [])
+
+  const handleRefreshFolder = useCallback(() => {
+    useEditorStore.getState().refreshFileBrowser()
+  }, [])
 
   const [pendingFilePath, setPendingFilePath] = useState<string | null>(null)
 
@@ -150,7 +164,13 @@ export default function App() {
 
   return (
     <div className="app">
-      <Toolbar editor={editor} onNew={handleNew} onOpen={handleOpen} onSave={handleSave} />
+      <Toolbar
+        editor={editor}
+        onNew={handleNew}
+        onOpenFolder={handleOpenFolder}
+        onSave={handleSave}
+        onRefresh={handleRefreshFolder}
+      />
       <div className="editor-container">
         <Allotment>
           {showFileBrowser && (
