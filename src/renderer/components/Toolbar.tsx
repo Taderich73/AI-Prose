@@ -4,11 +4,12 @@ import { Editor } from '@tiptap/react'
 interface ToolbarProps {
   editor: Editor | null
   onNew?: () => void
-  onOpen?: () => void
+  onOpenFolder?: () => void
   onSave?: () => void
+  onRefresh?: () => void
 }
 
-export function Toolbar({ editor, onNew, onOpen, onSave }: ToolbarProps) {
+export function Toolbar({ editor, onNew, onOpenFolder, onSave, onRefresh }: ToolbarProps) {
   const [showLinkDialog, setShowLinkDialog] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
   const [showTableDialog, setShowTableDialog] = useState(false)
@@ -71,11 +72,14 @@ export function Toolbar({ editor, onNew, onOpen, onSave }: ToolbarProps) {
       <button onClick={onNew} title="New (Cmd+N)">
         &#128196;
       </button>
-      <button onClick={onOpen} title="Open (Cmd+O)">
+      <button onClick={onOpenFolder} title="Open Folder">
         &#128194;
       </button>
       <button onClick={onSave} title="Save (Cmd+S)">
         &#128190;
+      </button>
+      <button onClick={onRefresh} title="Refresh folder contents">
+        &#128260;
       </button>
 
       <span className="toolbar-separator" />

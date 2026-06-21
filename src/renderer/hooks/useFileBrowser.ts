@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 
 interface DirectoryEntry {
   name: string
@@ -19,6 +19,11 @@ export function useFileBrowser() {
     directoryContents: new Map(),
     loading: new Set(),
   })
+
+  // Mirror state in a ref so refresh() can read the latest loaded directories
+  // without being recreated on every tree mutation.
+  const stateRef = useRef(state)
+  stateRef.current = state
 
   const loadDirectory = useCallback(async (dirPath: string) => {
     setState((prev) => ({
@@ -86,6 +91,18 @@ export function useFileBrowser() {
     })
   }, [])
 
+  // Re-read every directory currently loaded (the root plus any expanded
+  // subfolders) so newly added or removed files surface without collapsing
+  // the tree. Expansion state is preserved because only contents are updated.
+  const refresh = useCallback(
+    async (rootDir?: string | null) => {
+      const dirs = new Set(stateRef.current.directoryContents.keys())
+      if (rootDir) dirs.add(rootDir)
+      await Promise.all(Array.from(dirs).map((dir) => loadDirectory(dir)))
+    },
+    [loadDirectory]
+  )
+
   return {
     toggleFolder,
     isExpanded,
@@ -93,5 +110,6 @@ export function useFileBrowser() {
     getContents,
     loadDirectory,
     reset,
+    refresh,
   }
 }
