@@ -38,7 +38,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   markdownContent: '',
   showSourcePane: false,
   activePane: 'wysiwyg',
-  rootDirectory: null,
+  rootDirectory: localStorage.getItem('lastRootDirectory') || null,
   showFileBrowser: true,
   fileBrowserRefreshNonce: 0,
   theme: (localStorage.getItem('theme') as ThemePreference) || 'system',
@@ -65,7 +65,14 @@ export const useEditorStore = create<EditorState>((set) => ({
   setActivePane: (pane) => set({ activePane: pane }),
   reset: () =>
     set({ filePath: null, isDirty: false, markdownContent: '' }),
-  setRootDirectory: (path) => set({ rootDirectory: path }),
+  setRootDirectory: (path) => {
+    if (path) {
+      localStorage.setItem('lastRootDirectory', path)
+    } else {
+      localStorage.removeItem('lastRootDirectory')
+    }
+    set({ rootDirectory: path })
+  },
   setShowFileBrowser: (show) => set({ showFileBrowser: show }),
   toggleFileBrowser: () =>
     set((state) => ({ showFileBrowser: !state.showFileBrowser })),
