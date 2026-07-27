@@ -82,11 +82,18 @@ export function FileBrowser({ onOpenFile }: FileBrowserProps) {
   // Load the root folder, clearing any previous folder's tree state, whenever
   // the root changes (from the in-pane button or the toolbar open-folder icon).
   useEffect(() => {
-    if (rootDirectory) {
-      reset()
-      loadDirectory(rootDirectory)
+    if (!rootDirectory) return
+    reset()
+    let cancelled = false
+    loadDirectory(rootDirectory).then((ok) => {
+      if (!cancelled && !ok) {
+        setRootDirectory(null)
+      }
+    })
+    return () => {
+      cancelled = true
     }
-  }, [rootDirectory, reset, loadDirectory])
+  }, [rootDirectory, reset, loadDirectory, setRootDirectory])
 
   // Reload visible folders when a refresh is requested from the toolbar. Acts
   // only on an actual nonce change so switching folders doesn't double-load.

@@ -25,29 +25,34 @@ export function useFileBrowser() {
   const stateRef = useRef(state)
   stateRef.current = state
 
-  const loadDirectory = useCallback(async (dirPath: string) => {
-    setState((prev) => ({
-      ...prev,
-      loading: new Set(prev.loading).add(dirPath),
-    }))
+  const loadDirectory = useCallback(
+    async (dirPath: string): Promise<boolean> => {
+      setState((prev) => ({
+        ...prev,
+        loading: new Set(prev.loading).add(dirPath),
+      }))
 
-    try {
-      const entries = await window.api.readDirectory(dirPath)
-      setState((prev) => {
-        const newContents = new Map(prev.directoryContents)
-        newContents.set(dirPath, entries)
-        const newLoading = new Set(prev.loading)
-        newLoading.delete(dirPath)
-        return { ...prev, directoryContents: newContents, loading: newLoading }
-      })
-    } catch {
-      setState((prev) => {
-        const newLoading = new Set(prev.loading)
-        newLoading.delete(dirPath)
-        return { ...prev, loading: newLoading }
-      })
-    }
-  }, [])
+      try {
+        const entries = await window.api.readDirectory(dirPath)
+        setState((prev) => {
+          const newContents = new Map(prev.directoryContents)
+          newContents.set(dirPath, entries)
+          const newLoading = new Set(prev.loading)
+          newLoading.delete(dirPath)
+          return { ...prev, directoryContents: newContents, loading: newLoading }
+        })
+        return true
+      } catch {
+        setState((prev) => {
+          const newLoading = new Set(prev.loading)
+          newLoading.delete(dirPath)
+          return { ...prev, loading: newLoading }
+        })
+        return false
+      }
+    },
+    []
+  )
 
   const toggleFolder = useCallback(
     async (dirPath: string) => {
