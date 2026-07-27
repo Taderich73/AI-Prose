@@ -81,6 +81,9 @@ export function FileBrowser({ onOpenFile }: FileBrowserProps) {
 
   // Load the root folder, clearing any previous folder's tree state, whenever
   // the root changes (from the in-pane button or the toolbar open-folder icon).
+  // If the folder can't be read (missing, renamed, or on an unplugged drive),
+  // clear the root — which drops back to the empty 'Choose Folder' state and
+  // removes the stale persisted value.
   useEffect(() => {
     if (!rootDirectory) return
     reset()
