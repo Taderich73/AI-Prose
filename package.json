@@ -1,6 +1,6 @@
 {
   "name": "ai-prose",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Markdown WYSIWYG editor with rich-text clipboard copy",
   "main": "./out/main/index.js",
   "scripts": {
