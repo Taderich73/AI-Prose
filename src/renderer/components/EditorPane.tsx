@@ -20,6 +20,17 @@ export function EditorPane({ onEditorReady }: EditorPaneProps) {
   const editor = useEditor({
     extensions: getExtensions(),
     content: '',
+    editorProps: {
+      // A plain click places the cursor. Cmd/Ctrl+click follows the link, and
+      // the main process decides which schemes may reach the browser.
+      handleClick: (_view, _pos, event) => {
+        const link = (event.target as Element).closest('a')
+        if (!link || !(event.metaKey || event.ctrlKey)) return false
+        event.preventDefault()
+        window.open(link.href)
+        return true
+      },
+    },
     onUpdate: ({ editor }) => {
       setMarkdownContent(getMarkdown(editor))
       setDirty(true)
