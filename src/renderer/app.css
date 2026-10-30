@@ -210,6 +210,37 @@ body {
   margin: 0.5em 0;
 }
 
+/* Drawn in CSS rather than a title attribute, which would be copied to the
+   clipboard and could end up saved in the document. */
+.editor-pane .tiptap a {
+  position: relative;
+}
+
+.editor-pane .tiptap a::after {
+  content: var(--link-hint, 'Cmd+click to open');
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.editor-pane .tiptap a:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.1s linear 0.4s, visibility 0s linear 0.4s;
+}
+
 .editor-pane .tiptap blockquote {
   border-left: 3px solid var(--border-color);
   padding-left: 16px;
