@@ -10,6 +10,11 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('fs:read-directory', dirPath),
   openFilePath: (filePath: string) =>
     ipcRenderer.invoke('file:open-path', filePath),
+  takePendingOpenPath: () => ipcRenderer.invoke('file:take-pending-open'),
+
+  onPendingOpen: (cb: () => void) => {
+    ipcRenderer.on('file:pending-open', cb)
+  },
 
   onMenuNew: (cb: () => void) => {
     ipcRenderer.on('menu:new', cb)

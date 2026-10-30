@@ -95,6 +95,24 @@ export default function App() {
     setPendingFilePath(null)
   }, [])
 
+  // Files handed to us by the OS (Finder double-click, "Open With", or a path
+  // on the command line) wait in the main process until the editor exists.
+  // Collect them once it does, and whenever a fresh request lands.
+  useEffect(() => {
+    if (!editor) return
+
+    const collect = async () => {
+      const targetPath = await window.api.takePendingOpenPath()
+      if (targetPath) handleBrowserOpenFile(targetPath)
+    }
+
+    collect()
+    window.api.onPendingOpen(collect)
+    return () => {
+      window.api.removeAllListeners('file:pending-open')
+    }
+  }, [editor, handleBrowserOpenFile])
+
   useEffect(() => {
     window.api.onMenuToggleSource(toggleSourcePane)
     return () => {

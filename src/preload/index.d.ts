@@ -22,6 +22,9 @@ export interface ElectronAPI {
   chooseDirectory: () => Promise<string | null>
   readDirectory: (dirPath: string) => Promise<DirectoryEntry[]>
   openFilePath: (filePath: string) => Promise<FileResult>
+  takePendingOpenPath: () => Promise<string | null>
+
+  onPendingOpen: (callback: () => void) => void
 
   onMenuNew: (callback: () => void) => void
   onMenuOpen: (callback: () => void) => void

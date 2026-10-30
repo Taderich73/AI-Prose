@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc-handlers'
 import { buildMenu } from './menu'
+import { pathFromArgv, queueOpenPath } from './pending-open'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -32,20 +33,50 @@ function createWindow(): void {
   })
 }
 
-app.whenReady().then(() => {
-  registerIpcHandlers()
-  buildMenu()
-  createWindow()
+function focusMainWindow(): void {
+  if (!mainWindow) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.focus()
+}
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
+// macOS delivers Finder double-clicks and "Open With" as an Apple Event that
+// can arrive before the ready event, so this stays at module scope.
+app.on('open-file', (event, filePath) => {
+  event.preventDefault()
+  queueOpenPath(filePath)
+  focusMainWindow()
+})
+
+// Without the lock, opening a file from Finder on Windows or Linux starts a
+// second copy of the app instead of reusing the window that is already up.
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', (_event, argv) => {
+    const filePath = pathFromArgv(argv)
+    if (filePath) queueOpenPath(filePath)
+    focusMainWindow()
+  })
+
+  app.whenReady().then(() => {
+    registerIpcHandlers()
+    buildMenu()
+
+    const launchPath = pathFromArgv(process.argv)
+    if (launchPath) queueOpenPath(launchPath)
+
+    createWindow()
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow()
+      }
+    })
+  })
+
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      app.quit()
     }
   })
-})
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+}

@@ -7,6 +7,7 @@ import {
   readDirectory,
   openFilePath,
 } from './file-service'
+import { takePendingOpenPath } from './pending-open'
 
 export function registerIpcHandlers(): void {
   ipcMain.handle('file:open', async (event) => {
@@ -47,4 +48,8 @@ export function registerIpcHandlers(): void {
       return openFilePath(filePath)
     }
   )
+
+  ipcMain.handle('file:take-pending-open', async () => {
+    return takePendingOpenPath()
+  })
 }
