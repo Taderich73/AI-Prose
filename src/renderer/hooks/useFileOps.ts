@@ -8,7 +8,10 @@ export function useFileOps(editor: Editor | null) {
 
   const serializeMarkdown = useCallback((): string => {
     if (!editor) return ''
-    return getMarkdown(editor)
+    // Source edits reach the WYSIWYG editor after a debounce, so the store is
+    // the only up-to-date copy while the source pane is driving.
+    const { activePane, markdownContent } = useEditorStore.getState()
+    return activePane === 'source' ? markdownContent : getMarkdown(editor)
   }, [editor])
 
   const handleNew = useCallback(() => {
