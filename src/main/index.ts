@@ -21,6 +21,11 @@ function createWindow(): void {
     },
   })
 
+  // Documents are untrusted, and the preload bridge follows the window to any
+  // page it navigates to, so the window must never leave the app's own page.
+  mainWindow.webContents.on('will-navigate', (event) => event.preventDefault())
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+
   // Load the renderer
   if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
