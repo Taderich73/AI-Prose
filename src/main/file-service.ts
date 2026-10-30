@@ -1,6 +1,7 @@
 import { dialog, BrowserWindow } from 'electron'
-import { readFile, writeFile, readdir } from 'node:fs/promises'
-import { join } from 'node:path'
+import { randomUUID } from 'node:crypto'
+import { open, readFile, readdir, realpath, rename, rm, stat } from 'node:fs/promises'
+import { basename, dirname, join } from 'node:path'
 
 export interface FileResult {
   path: string
@@ -10,6 +11,44 @@ export interface FileResult {
 export interface SaveResult {
   path: string
   success: boolean
+}
+
+/**
+ * Replace a file's contents so that a failure leaves the original intact.
+ *
+ * A plain write empties the file before writing to it, so a crash or failed
+ * write loses the document. Writing beside it and renaming over it is atomic.
+ *
+ * Args:
+ *     filePath: File to create or replace. Symlinks are followed so the link
+ *         itself survives.
+ *     content: Text to store.
+ */
+async function writeFileAtomic(
+  filePath: string,
+  content: string
+): Promise<void> {
+  const target = await realpath(filePath).catch(() => filePath)
+  const existing = await stat(target).catch(() => null)
+  const tempPath = join(
+    dirname(target),
+    `.${basename(target)}.${randomUUID()}.tmp`
+  )
+
+  try {
+    const handle = await open(tempPath, 'wx')
+    try {
+      await handle.writeFile(content, 'utf-8')
+      if (existing) await handle.chmod(existing.mode)
+      await handle.sync()
+    } finally {
+      await handle.close()
+    }
+    await rename(tempPath, target)
+  } catch (error) {
+    await rm(tempPath, { force: true })
+    throw error
+  }
 }
 
 export async function openFile(
@@ -35,7 +74,7 @@ export async function saveFile(
   filePath: string,
   content: string
 ): Promise<{ success: boolean }> {
-  await writeFile(filePath, content, 'utf-8')
+  await writeFileAtomic(filePath, content)
   return { success: true }
 }
 
@@ -53,7 +92,7 @@ export async function saveFileAs(
 
   if (canceled || !filePath) return null
 
-  await writeFile(filePath, content, 'utf-8')
+  await writeFileAtomic(filePath, content)
   return { path: filePath, success: true }
 }
 
