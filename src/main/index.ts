@@ -1,10 +1,31 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc-handlers'
 import { buildMenu } from './menu'
 import { pathFromArgv, queueOpenPath } from './pending-open'
 
 let mainWindow: BrowserWindow | null = null
+
+/**
+ * Open a link from a document in the user's browser.
+ *
+ * Only http and https are allowed, because the OS would otherwise launch
+ * whichever app handles the scheme, on the say-so of an untrusted document.
+ *
+ * Args:
+ *     url: The link target.
+ */
+function openInBrowser(url: string): void {
+  try {
+    const { protocol } = new URL(url)
+    if (protocol !== 'http:' && protocol !== 'https:') return
+  } catch {
+    return
+  }
+  shell.openExternal(url).catch((error) => {
+    console.error(`Failed to open ${url}:`, error)
+  })
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -23,8 +44,14 @@ function createWindow(): void {
 
   // Documents are untrusted, and the preload bridge follows the window to any
   // page it navigates to, so the window must never leave the app's own page.
-  mainWindow.webContents.on('will-navigate', (event) => event.preventDefault())
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    event.preventDefault()
+    openInBrowser(url)
+  })
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    openInBrowser(url)
+    return { action: 'deny' }
+  })
 
   // Load the renderer
   if (process.env.ELECTRON_RENDERER_URL) {
