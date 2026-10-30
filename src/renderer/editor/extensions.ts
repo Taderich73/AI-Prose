@@ -17,6 +17,7 @@ export function getExtensions() {
         levels: [1, 2, 3, 4, 5, 6],
       },
       codeBlock: false,
+      link: false,
     }),
     Markdown,
     MermaidCodeBlock,
