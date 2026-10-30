@@ -8,6 +8,7 @@ interface EditorState {
   filePath: string | null
   isDirty: boolean
   markdownContent: string
+  documentVersion: number
   showSourcePane: boolean
   activePane: ActivePane
   rootDirectory: string | null
@@ -23,6 +24,7 @@ interface EditorState {
   setFilePath: (path: string | null) => void
   setDirty: (dirty: boolean) => void
   setMarkdownContent: (content: string) => void
+  loadDocument: (path: string | null, content: string) => void
   toggleSourcePane: () => void
   setActivePane: (pane: ActivePane) => void
   reset: () => void
@@ -36,6 +38,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   filePath: null,
   isDirty: false,
   markdownContent: '',
+  documentVersion: 0,
   showSourcePane: false,
   activePane: 'wysiwyg',
   rootDirectory: localStorage.getItem('lastRootDirectory') || null,
@@ -60,6 +63,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   setFilePath: (path) => set({ filePath: path }),
   setDirty: (dirty) => set({ isDirty: dirty }),
   setMarkdownContent: (content) => set({ markdownContent: content }),
+  loadDocument: (path, content) =>
+    set((state) => ({
+      filePath: path,
+      markdownContent: content,
+      isDirty: false,
+      documentVersion: state.documentVersion + 1,
+    })),
   toggleSourcePane: () =>
     set((state) => ({ showSourcePane: !state.showSourcePane })),
   setActivePane: (pane) => set({ activePane: pane }),

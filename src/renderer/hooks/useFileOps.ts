@@ -4,8 +4,7 @@ import { getMarkdown, setMarkdownContent as loadMarkdown } from '../editor/markd
 import { useEditorStore } from '../stores/editor-store'
 
 export function useFileOps(editor: Editor | null) {
-  const { filePath, setFilePath, setDirty, setMarkdownContent } =
-    useEditorStore()
+  const { filePath, setFilePath, setDirty, loadDocument } = useEditorStore()
 
   const serializeMarkdown = useCallback((): string => {
     if (!editor) return ''
@@ -15,10 +14,8 @@ export function useFileOps(editor: Editor | null) {
   const handleNew = useCallback(() => {
     if (!editor) return
     editor.commands.clearContent()
-    setFilePath(null)
-    setMarkdownContent('')
-    setDirty(false)
-  }, [editor, setFilePath, setMarkdownContent, setDirty])
+    loadDocument(null, '')
+  }, [editor, loadDocument])
 
   const handleOpen = useCallback(async () => {
     if (!editor) return
@@ -26,10 +23,8 @@ export function useFileOps(editor: Editor | null) {
     if (!result) return
 
     loadMarkdown(editor, result.content)
-    setFilePath(result.path)
-    setMarkdownContent(result.content)
-    setDirty(false)
-  }, [editor, setFilePath, setMarkdownContent, setDirty])
+    loadDocument(result.path, result.content)
+  }, [editor, loadDocument])
 
   const handleSave = useCallback(async () => {
     if (!editor) return

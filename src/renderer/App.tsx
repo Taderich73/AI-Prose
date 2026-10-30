@@ -57,9 +57,7 @@ export default function App() {
       if (!editor) return
       const result = await window.api.openFilePath(targetPath)
       loadMarkdown(editor, result.content)
-      useEditorStore.getState().setFilePath(result.path)
-      useEditorStore.getState().setMarkdownContent(result.content)
-      useEditorStore.getState().setDirty(false)
+      useEditorStore.getState().loadDocument(result.path, result.content)
     },
     [editor]
   )

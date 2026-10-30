@@ -1,4 +1,4 @@
-import { EditorState, Extension } from '@codemirror/state'
+import { Annotation, EditorState, Extension } from '@codemirror/state'
 import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view'
 import { markdown } from '@codemirror/lang-markdown'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
@@ -36,6 +36,24 @@ const baseTheme = EditorView.theme({
   },
 })
 
+// Marks changes pushed in by the app, which are not edits made by the user.
+const externalSync = Annotation.define<boolean>()
+
+/**
+ * Show new content in the source pane without counting it as a user edit.
+ *
+ * Args:
+ *     view: The source pane's editor view.
+ *     content: Markdown to display.
+ */
+export function replaceSourceContent(view: EditorView, content: string): void {
+  if (view.state.doc.toString() === content) return
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: content },
+    annotations: externalSync.of(true),
+  })
+}
+
 export function getCodeMirrorExtensions(
   onUpdate: (content: string) => void,
   onFocus: () => void,
@@ -52,7 +70,10 @@ export function getCodeMirrorExtensions(
     codeMirrorSearchExtension(),
     keymap.of([...defaultKeymap, ...historyKeymap]),
     EditorView.updateListener.of((update) => {
-      if (update.docChanged) {
+      const isUserEdit = update.transactions.some(
+        (transaction) => !transaction.annotation(externalSync)
+      )
+      if (update.docChanged && isUserEdit) {
         onUpdate(update.state.doc.toString())
       }
       if (update.focusChanged && update.view.hasFocus) {

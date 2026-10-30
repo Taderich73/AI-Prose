@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Editor } from '@tiptap/react'
 import { EditorView } from '@codemirror/view'
+import { replaceSourceContent } from '../codemirror/setup'
 import { setMarkdownContent as loadMarkdown } from '../editor/markdown-helpers'
 import { useEditorStore } from '../stores/editor-store'
 
@@ -18,9 +19,17 @@ export function useMarkdownSync(
   editor: Editor | null,
   cmView: EditorView | null
 ) {
-  const { markdownContent, activePane } = useEditorStore()
+  const { markdownContent, activePane, documentVersion } = useEditorStore()
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isSyncingRef = useRef(false)
+
+  // A newly loaded document replaces the source pane's contents even when that
+  // pane has focus, or typing there would overwrite the document with old text.
+  useEffect(() => {
+    if (cmView) {
+      replaceSourceContent(cmView, useEditorStore.getState().markdownContent)
+    }
+  }, [documentVersion, cmView])
 
   // WYSIWYG → Source: when TipTap produces new markdown, push to CodeMirror
   useEffect(() => {
@@ -31,18 +40,9 @@ export function useMarkdownSync(
     }
 
     syncTimerRef.current = setTimeout(() => {
-      const currentCM = cmView.state.doc.toString()
-      if (currentCM !== markdownContent) {
-        isSyncingRef.current = true
-        cmView.dispatch({
-          changes: {
-            from: 0,
-            to: cmView.state.doc.length,
-            insert: markdownContent,
-          },
-        })
-        isSyncingRef.current = false
-      }
+      isSyncingRef.current = true
+      replaceSourceContent(cmView, markdownContent)
+      isSyncingRef.current = false
     }, SYNC_DEBOUNCE_MS)
 
     return () => {
